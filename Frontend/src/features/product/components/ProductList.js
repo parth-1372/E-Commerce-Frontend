@@ -201,23 +201,71 @@ export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const products = useSelector(selectAllProducts);
   const [filter, setFilter] = useState({});
-
+  const [sort, setSort] = useState({});
+ /*
   const handleFilter = (e, section, option) => {
-    const newFilter = { ...filter, [section.id]: option.value };
+    console.log(e.target.checked)
+    const newFilter = { ...filter}
+    if(e.target.checked){
+      if(newFilter[section.id]){
+        newFilter[section.id].push(option.value)
+      }else{
+        newFilter[section.id] = [option.value]
+      }
+    }else{
+      const index = newFilter[section.id].findIndex(el=>el===option.value)
+      newFilter.splice(index,1);
+    }
+    console.log({newFilter});
     setFilter(newFilter);
-    dispatch(fetchProductsByFiltersAsync(newFilter));
-    console.log(section.id, option.value);
+    // dispatch(fetchProductsByFiltersAsync(newFilter));
+    
   };
+  */
+  const handleFilter = (e, section, option) => {
+    console.log(e.target.checked);
+    const newFilter = { ...filter };  // Make a shallow copy of the filter object
+
+    if (e.target.checked) {
+        // If the option is checked, add it to the array
+        if (newFilter[section.id]) {
+            newFilter[section.id].push(option.value);
+        } else {
+            newFilter[section.id] = [option.value];
+        }
+    } else {
+        // If the option is unchecked, remove it from the array
+        const optionArray = newFilter[section.id];
+        if (optionArray) {
+            const index = optionArray.findIndex(el => el === option.value);
+            if (index > -1) {
+                optionArray.splice(index, 1);  // Splice the element from the array
+            }
+            // If the array is empty after removal, delete the key from the object
+            if (optionArray.length === 0) {
+                delete newFilter[section.id];
+            }
+        }
+    }
+
+    console.log({ newFilter });
+    setFilter(newFilter);  // Update the filter state
+    // dispatch(fetchProductsByFiltersAsync(newFilter));
+};
+
 
   const handleSort = (e, option) => {
-    const newFilter = { ...filter, _sort: option.sort, _order:option.order };
-    setFilter(newFilter);
-    dispatch(fetchProductsByFiltersAsync(newFilter));
+    const sort = {_sort: option.sort, _order:option.order };
+    setSort(sort);
+    console.log({sort});
+    // dispatch(fetchProductsByFiltersAsync({newFilter}));
   };
 
   useEffect(() => {
-    dispatch(fetchAllProductsAsync());
-  }, [dispatch]);
+    console.log({ filter, sort }); // Check if filter and sort are updating
+    dispatch(fetchProductsByFiltersAsync({ filter, sort }));
+  }, [dispatch, filter, sort]);
+  
 
   return (
     <div className="bg-white">
@@ -321,9 +369,7 @@ export default function ProductList() {
           </section>
 
           {/* section of product and filters ends */}
-          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <Pagination></Pagination>
-          </div>
         </main>
       </div>
     </div>
@@ -512,7 +558,7 @@ function DesktopFilter({handleFilter}){
 
 function Pagination(){
   return (
-    <div>
+    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
         <div className="flex flex-1 justify-between sm:hidden">
               <a
                 href="#"
